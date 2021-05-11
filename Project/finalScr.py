@@ -736,19 +736,39 @@ def queryData():
                 print(df)
             break
         elif fieldInput == "5":
-            mycursor.callproc('playersFromSchool')
-            for result in mycursor.stored_results():
-                school = result.fetchall()
-                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-                df = DataFrame(school, columns=['Name', 'JerseyNumber', 'Year', 'Position', 'Injured', 'UniversityName'])
-                print(df)
+            while True:
+                try:
+                    print("\n")
+                    mycursor.execute("SELECT TeamId, UniversityName FROM Team WHERE isDeleted = false;")
+                    Allrecords = mycursor.fetchall()
+                    # use pd.set_option to display full table with all attributes
+                    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+                    # use DataFrame for cleaner display
+                    df = DataFrame(Allrecords,
+                                   columns=['TeamId', 'UniversityName'])
+                    print(df)
+                    print("\n")
+
+                    userTeamName = int(input("What school would you like to query by? Please enter the corrosponding team ID from list above: "))
+                    mycursor.callproc('playersFromSchool', args = [userTeamName])
+                    for result in mycursor.stored_results():
+                        school = result.fetchall()
+                        pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+                        df = DataFrame(school, columns=['Name', 'JerseyNumber', 'Year', 'Position', 'UniversityName'])
+                        print(df)
+                    break
+                except ValueError:
+                    print("\n")
+                    print("Please enter integers. Try again: ")
             break
+
+
         elif fieldInput == "6":
             mycursor.callproc('playerStats')
             for result in mycursor.stored_results():
                 stats = result.fetchall()
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-                df = DataFrame(stats, columns=['MinutesPlayedTotal', 'GamesPlayedIn', 'goals', 'assists', 'Name', 'JerseyNumber', 'UniversityName'])
+                df = DataFrame(stats, columns=['Name', 'JerseyNumber', 'UniversityName', 'MinutesPlayedTotal', 'GamesPlayedIn', 'goals', 'assists'])
                 print(df)
             break
         elif fieldInput == "7":
@@ -766,5 +786,36 @@ def queryData():
 
 
 def generateReports():
-    print("hi")
 
+    #Report 1 - Average Stats
+    mycursor = db.cursor()
+    mycursor.execute("SELECT * FROM avgStats")
+    avg = mycursor.fetchall()
+    df = pd.DataFrame(avg, columns=['UniversityName', 'Avg Goals', 'Avg Assists', 'AvgMinutesPlayedTotal', 'AvgGamesPlayedIn'])
+    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+    df.to_csv("AverageStats.csv")
+
+    #Report 2 - Top Goal Scorers
+    mycursor = db.cursor()
+    mycursor.execute("SELECT * FROM topTenGoalScorers")
+    avg = mycursor.fetchall()
+    df = pd.DataFrame(avg, columns=['Name', 'JerseyNumber', 'Position', 'MaxGoals', 'UniversityName'])
+    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+    df.to_csv("topGoalScorers.csv")
+
+
+    #Report 3 - Most Minutes Played
+    mycursor = db.cursor()
+    mycursor.execute("SELECT * FROM topTenMinutePlayers")
+    avg = mycursor.fetchall()
+    df = pd.DataFrame(avg, columns=['Name', 'JerseyNumber', 'Position', 'MinutesPlayed', 'UniversityName'])
+    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+    df.to_csv("topMinutePlayers.csv")
+
+    #Report 4 - Injuries on Each Team
+    mycursor = db.cursor()
+    mycursor.execute("SELECT * FROM injuryTeamCount")
+    avg = mycursor.fetchall()
+    df = pd.DataFrame(avg, columns=['Count', 'UniversityName'])
+    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+    df.to_csv("injuryTeamCount.csv")
