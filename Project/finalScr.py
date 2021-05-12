@@ -288,6 +288,7 @@ def deleteRecord():
             mycursor.execute("UPDATE Player SET isDeleted = true WHERE PlayerId = %s", (deletePlayer,))
             mycursor.execute("UPDATE Academics SET isDeleted = true WHERE PlayerId = %s", (deletePlayer,))
             mycursor.execute("UPDATE Stats SET isDeleted = true WHERE PlayerId = %s", (deletePlayer,))
+            print("\n")
             print("The player has been deleted from the database.")
             db.commit()
 
