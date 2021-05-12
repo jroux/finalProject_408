@@ -8,6 +8,8 @@ import finalScr as final
 
 # Execute and run program/functions
 def runFinalProject():
+    print("\n")
+    print("Welcome to the Women's Soccer SCIAC League Database!")
     final.menu()
 
 

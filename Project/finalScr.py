@@ -1,3 +1,11 @@
+#Jessica Roux
+#Student ID: 2317255
+#Chapman Email: jroux@chapman.edu
+#Course: 408-01
+#Final Assignment
+
+
+#Imports
 import mysql.connector
 from faker import Faker
 import csv
@@ -17,17 +25,20 @@ db = mysql.connector.connect(
 mycursor = db.cursor()
 
 
+#Function that displays menu for user to pick from
 def menu():
     while True:
         print("\n")
-        print("Welcome! Below are your options: ")
+        print("Below are your options: ")
+        print("-------------------------------------------------------------------------------------------")
         print("1) Display all tables in database")
-        print("2) Create a new player or coach")
+        print("2) Create a new player")
         print("3) Delete from a table")
         print("4) Update data")
         print("5) Query for data")
         print("6) Generate reports")
         print("7) Exit program")
+        print("\n")
         menuInput = input("Please select which option you would like to execute. Enter the corresponding digit: ")
         if menuInput == "1":
             print("\n")
@@ -62,7 +73,8 @@ def menu():
             print("Please enter the single digit of your desired option")
             continue
 
-#DONE
+#Function that prints and displays all the tables to the user
+#Takes into account to not display data that has been soft deleted
 def displayTables():
     print("\n")
     print("COACHES TABLE")
@@ -121,16 +133,10 @@ def displayTables():
     print("\n")
 
 
-#NEED TO FINISH
-# - ADD ROLLBACK
+#Function to allow user to create and add a new player to the database
+#Error handling is enforced
 def createNewRecord():
-    while True:
-        print("What new record would you like to create? :")
-        print("1) New Player")
-        print("2) New Coach")
-        userChoice = input("Please enter which option you would like to execute: ")
-
-        if (userChoice == "1"):
+            #Gathering necessary user input for player information
             userPlayerName = input("Enter the name of the player: ")
             while True:
                 try:
@@ -147,6 +153,7 @@ def createNewRecord():
                     else:
                         print("Please enter 1-4.")
                         continue
+                #Enforce error handling
                 except ValueError:
                     print("Please enter an integer 1-4 corresponding to grade level: ")
 
@@ -164,7 +171,7 @@ def createNewRecord():
                     continue
 
 
-
+            #Gathering academic information of new player
             print("\n")
             print("Now please enter the academic information of the player.")
             userMajor = input("Enter the player's major: ")
@@ -178,8 +185,10 @@ def createNewRecord():
                 except ValueError:
                     print("Please enter a decimal: ")
 
+
+            #Gather stats of new player being added
             print("\n")
-            print("Now please enter the statistic for the player.")
+            print("Now please enter the stats for the player.")
             while True:
                 try:
                     userGoals = int(input("Enter number of goals the player has scored: "))
@@ -202,6 +211,7 @@ def createNewRecord():
                     print("Please enter an integer: ")
 
             print("\n")
+            #Display team id's and university names so the user knows what they can choose from
             mycursor.execute("SELECT TeamId, UniversityName FROM Team WHERE isDeleted = false;")
             Allrecords = mycursor.fetchall()
             # use pd.set_option to display full table with all attributes
@@ -218,7 +228,7 @@ def createNewRecord():
                 try:
                     while test == True:
                         userPlayerUniversity = int(input(
-                            "Enter the university id that the player plays for from the list above exactly as provided: "))
+                            "Enter the university id that the player plays for from the list above: "))
                         if userPlayerUniversity == 1 or userPlayerUniversity == 2 or userPlayerUniversity == 3 or userPlayerUniversity == 4 or userPlayerUniversity == 5 or userPlayerUniversity == 6 or userPlayerUniversity == 7 or userPlayerUniversity == 8 or userPlayerUniversity == 9:
                             test = False
                             break
@@ -239,80 +249,20 @@ def createNewRecord():
                 except ValueError:
                     print("Please enter an integer: ")
 
-
+            #Using transaction and stored procedure created in console
             mycursor.callproc('createPlayer', args=(userPlayerName, userJerseyNumber, userYear, userPosition, userInjured, userMajor, userGpa, userGoals, userAssists, userMinutesPlayed, userGamesPlayed, userPlayerUniversity))
             for result in mycursor.stored_results():
                 player = result.fetchall()
                 print(player)
-            print("The player was successfully added.")
+            print("\n")
+            print("The player was successfully added!")
             db.commit()
-            break
 
-        elif (userChoice == "2"):
-            userCoachName = input("Enter the name of the coach: ")
-            userAlmaMater = input("Enter the coach's alma mater: ")
-            while True:
-                try:
-                    userYearsCoached = int(input("Enter the amount of years coached: "))
-                    break
-                except ValueError:
-                    print("Please enter an integer: ")
-
-            print("\n")
-            mycursor.execute("SELECT TeamId, UniversityName FROM Team;")
-            Allrecords = mycursor.fetchall()
-            # use pd.set_option to display full table with all attributes
-            pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-            # use DataFrame for cleaner display
-            df = DataFrame(Allrecords,
-                           columns=['TeamId', 'UniversityName'])
-            print(df)
-            print("\n")
-
-
-            test = True
-
-            while True:
-                try:
-                    while test == True:
-                        userCoachUniversity = int(input("Enter the university id that the coach coaches for from the list above exactly as provided: "))
-                        if userCoachUniversity == 1 or userCoachUniversity == 2 or userCoachUniversity == 3 or userCoachUniversity == 4 or userCoachUniversity == 5 or userCoachUniversity == 6 or userCoachUniversity == 7 or userCoachUniversity == 8 or userCoachUniversity == 9:
-                            test = False
-                            break
-                        else:
-                            test = True
-                            continue
-                    break
-                except ValueError:
-                    print("\n")
-                    print("Please enter an integer. ")
-
-
-
-
-            mycursor.callproc('createCoach', args=(userCoachName, userAlmaMater, userYearsCoached, userCoachUniversity))
-            for result in mycursor.stored_results():
-                coach = result.fetchall()
-                print(coach)
-            print("The coach was successfully added.")
-            # if (userTeamCoach != "Chapman"):
-            #     print(userTeamCoach)
-            #     #mycursor.execute("rollback")
-            #     db.rollback()
-            #     print("success")
-            db.commit()
-            break
-
-        else:
-            print("\n")
-            print("Please enter 1 or 2.")
-            continue
-
-
-# DONE
+#Function that allows for a soft delete of a player - updates all tables on this soft delete where necessary
 def deleteRecord():
     test = True
     while (test == True):
+        #Shows user list of players they can delete
         mycursor.execute("SELECT PlayerId, Name FROM Player WHERE isDeleted = false;")
         Allrecords = mycursor.fetchall()
         pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
@@ -324,6 +274,7 @@ def deleteRecord():
         mycursor.execute("SELECT PlayerId FROM Player WHERE PlayerId = %s", [deletePlayer])
         records = mycursor.fetchall()
         if records == []:
+            #User must enter a valid player id
             print("Please enter a valid player id from the list below")
             mycursor.execute("SELECT PlayerId, Name FROM Player;")
             Allrecords = mycursor.fetchall()
@@ -342,7 +293,7 @@ def deleteRecord():
 
 
 
-
+#Funcion allows user to update data
 def updateRecord():
     while True:
         print("What would you like to update? :")
@@ -350,6 +301,7 @@ def updateRecord():
         print("2) Basic and Academic Player Information")
         print("3) Player Statistics")
         print("4) Team Information")
+        print("\n")
         userChoice = input("Please enter which option you would like to execute: ")
         if (userChoice == "1"):
         #update coach information
@@ -360,6 +312,7 @@ def updateRecord():
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(Allrecords,
                                columns=['CoachId', 'CoachName'])
+                print("\n")
                 print(df)
                 print("\n")
                 userUpdate = input("Please enter the ID of the coach you would like to update: ")
@@ -372,11 +325,17 @@ def updateRecord():
                 else:
                     option = True
                     while (option == True):
+                        print("\n")
+                        print("What would you like to update? : ")
+                        print("1) Name")
+                        print("2) Alma Mater")
+                        print("3) Years Coached")
                         userChoice = input(
-                            "Would you like to update Name(1), Alma Mater(2), Years Coached(3). Please type in the corresponding number: ")
+                            "Please type in the corresponding number: ")
                         if userChoice == "1":
                             nameUpdate = input("Please enter the new updated name: ")
                             mycursor.execute("UPDATE Coach SET CoachName = %s WHERE CoachId = %s", (nameUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -384,6 +343,7 @@ def updateRecord():
                             almaMaterUpdate = input("Please enter the updated alma mater: ")
                             mycursor.execute("UPDATE Coach SET AlmaMater = %s WHERE CoachId = %s",
                                              (almaMaterUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -397,6 +357,7 @@ def updateRecord():
                                     print("Please enter all digits. Try again: ")
                             mycursor.execute("UPDATE Coach SET YearsCoached = %s WHERE CoachId = %s",
                                              (YearsCoachedUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -416,7 +377,9 @@ def updateRecord():
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(Allrecords,
                                columns=['PlayerId', 'Name'])
+                print("\n")
                 print(df)
+                print("\n")
                 userUpdate = input("Please enter the ID of the player you would like to update: ")
                 mycursor.execute("SELECT DISTINCT PlayerId FROM Player WHERE PlayerId = %s and isDeleted = false", [userUpdate])
                 records = mycursor.fetchall()
@@ -427,11 +390,21 @@ def updateRecord():
                 else:
                     option = True
                     while (option == True):
+                        print("\n")
+                        print("What would you like to update? :")
+                        print("1) Name")
+                        print("2) Jersey Number")
+                        print("3) Year")
+                        print("4) Position")
+                        print("5) Injured Status")
+                        print("6) Major")
+                        print("7) GPA")
                         userChoice = input(
-                            "Would you like to update Name(1), Jersey Number(2), Year(3), Position(4), Injured Status(5), Major(6), GPA(7). Please type in the corresponding number: ")
+                            "Please type in the corresponding number: ")
                         if userChoice == "1":
                             nameUpdate = input("Please enter the new updated name: ")
                             mycursor.execute("UPDATE Player SET Name = %s WHERE PlayerId = %s", (nameUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -441,6 +414,7 @@ def updateRecord():
                                     JerseyNumberUpdate = int(input("Please enter the updated jersey number: "))
                                     mycursor.execute("UPDATE Player SET JerseyNumber = %s WHERE PlayerId = %s",
                                                      (JerseyNumberUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -464,6 +438,7 @@ def updateRecord():
                                     print("Please enter single integer 1-4 corresponding to grade level. Try again: ")
                             mycursor.execute("UPDATE Player SET Year = %s WHERE PlayerId = %s",
                                              (YearsUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -473,6 +448,7 @@ def updateRecord():
                         elif userChoice == "4":
                             positionUpdate = input("Please enter the new updated position: ")
                             mycursor.execute("UPDATE Player SET Position = %s WHERE PlayerId = %s", (positionUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -498,6 +474,7 @@ def updateRecord():
                         elif userChoice == "6":
                             majorUpdate = input("Please enter the new updated major: ")
                             mycursor.execute("UPDATE Academics SET Major = %s WHERE PlayerId = %s", (majorUpdate, userUpdate,))
+                            print("\n")
                             print("Successfully updated!")
                             test = False
                             option = False
@@ -534,7 +511,9 @@ def updateRecord():
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(Allrecords,
                                columns=['PlayerId', 'Name'])
+                print("\n")
                 print(df)
+                print("\n")
                 userUpdate = input("Please enter the ID of the player you would like to update: ")
                 mycursor.execute("SELECT DISTINCT PlayerId FROM Player WHERE PlayerId = %s and isDeleted = false", [userUpdate])
                 records = mycursor.fetchall()
@@ -545,13 +524,20 @@ def updateRecord():
                 else:
                     option = True
                     while (option == True):
+                        print("\n")
+                        print("What would you like to update? :")
+                        print("1) Goals")
+                        print("2) Assists")
+                        print("3) Minutes Played")
+                        print("4) Games Played In")
                         userChoice = input(
-                            "Would you like to update Goals(1), Assists(2), Minutes Played(3), Games Played In(4)? Please type in the corresponding number: ")
+                            "Please type in the corresponding number: ")
                         if userChoice == "1":
                             while True:
                                 try:
                                     goalUpdate = int(input("Please enter the new goal count: "))
                                     mycursor.execute("UPDATE Stats SET Goals = %s WHERE PlayerId = %s", (goalUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -565,6 +551,7 @@ def updateRecord():
                                 try:
                                     assistUpdate = int(input("Please enter the new assist count: "))
                                     mycursor.execute("UPDATE Stats SET Assists = %s WHERE PlayerId = %s", (assistUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -577,6 +564,7 @@ def updateRecord():
                                 try:
                                     minutesUpdate = int(input("Please enter the new minutes played count: "))
                                     mycursor.execute("UPDATE Stats SET MinutesPlayedTotal = %s WHERE PlayerId = %s", (minutesUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -589,6 +577,7 @@ def updateRecord():
                                 try:
                                     playedUpdate = int(input("Please enter the new amounts of games the player has played in: "))
                                     mycursor.execute("UPDATE Stats SET GamesPlayedIn = %s WHERE PlayerId = %s", (playedUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -614,7 +603,9 @@ def updateRecord():
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(Allrecords,
                                columns=['TeamId', 'UniversityName'])
+                print("\n")
                 print(df)
+                print("\n")
                 userUpdate = input("Please enter the ID of the team you would like to update: ")
                 mycursor.execute("SELECT DISTINCT TeamId FROM Team WHERE TeamId = %s and isDeleted = false", [userUpdate])
                 records = mycursor.fetchall()
@@ -625,13 +616,20 @@ def updateRecord():
                 else:
                     option = True
                     while (option == True):
+                        print("\n")
+                        print("What would you like to update? :")
+                        print("1) TeamSize")
+                        print("2) Wins")
+                        print("3) Losses")
+                        print("4) Ties")
                         userChoice = input(
-                            "Would you like to update TeamSize(1), Wins(2), Losses(3), Ties(4)? Please type in the corresponding number: ")
+                            "Please type in the corresponding number: ")
                         if userChoice == "1":
                             while True:
                                 try:
                                     sizeUpdate = int(input("Please enter the new team size: "))
                                     mycursor.execute("UPDATE Team SET TeamSize = %s WHERE TeamId = %s", (sizeUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -645,6 +643,7 @@ def updateRecord():
                                 try:
                                     winUpdate = int(input("Please enter the new number of wins: "))
                                     mycursor.execute("UPDATE Team SET Wins = %s WHERE TeamId = %s", (winUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -657,6 +656,7 @@ def updateRecord():
                                 try:
                                     lossUpdate = int(input("Please enter the new number of losses: "))
                                     mycursor.execute("UPDATE Team SET Losses = %s WHERE TeamId = %s", (lossUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -669,6 +669,7 @@ def updateRecord():
                                 try:
                                     tieUpdate = int(input("Please enter the new number of ties: "))
                                     mycursor.execute("UPDATE Team SET Ties = %s WHERE TeamId = %s", (tieUpdate, userUpdate,))
+                                    print("\n")
                                     print("Successfully updated!")
                                     test = False
                                     option = False
@@ -687,20 +688,20 @@ def updateRecord():
             print("Please enter a valid integer option.")
             continue
 
-
+#Function allows for user to query data from specific given options
 def queryData():
-    print("What would you like to specifically look for in the database? Please enter the digit you wish to execute: ")
+    print("What would you like to specifically look for in the database? : ")
     print("1) Which players are eligible to play")
     print("2) Which players are currently injured")
     print("3) Most experienced coaches in the league")
     print("4) See a specific group of players based on their year")
     print("5) See which top players are on a specific team")
-    print("6) See players stats")
+    print("6) See all players and their stats")
     print("7) See team records ")
-    #print("8) See which players have played a certain amount of minutes. Show players that have more than _ amount of minutes:")
-    #print("9) See top teams that have the most amount of wins")
+
     checkWhile = True
     while (checkWhile == True):
+        print("\n")
         fieldInput = input("Please enter the corresponding number: ")
         if fieldInput == "1":
             mycursor.callproc('getEligibilePlayers')
@@ -785,6 +786,7 @@ def queryData():
 
 
 
+#Function generates 4 reports for user that may be a common necessity
 def generateReports():
 
     #Report 1 - Average Stats
@@ -819,3 +821,12 @@ def generateReports():
     df = pd.DataFrame(avg, columns=['Count', 'UniversityName'])
     pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
     df.to_csv("injuryTeamCount.csv")
+
+    print("\n")
+    print("Reports have successfully been created!")
+    print("\n")
+    print("Created reports include:")
+    print("Report #1: Average Stats")
+    print("Report #2: Top Ten Goal Scorers")
+    print("Report #3: Players with Max Minutes")
+    print("Report #4: Injuries on each Team")
