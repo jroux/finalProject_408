@@ -350,6 +350,17 @@ def updateRecord():
                             option = False
                         elif userChoice == "3":
                             while True:
+                                # Show current data value
+                                print("\n")
+                                print("The current amount of years coached is shown below: ")
+                                mycursor.execute("SELECT CoachName, YearsCoached FROM Coach WHERE CoachId = %s and isDeleted = false;", (userUpdate,))
+                                Allrecords = mycursor.fetchall()
+                                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width",
+                                              None)
+                                df = DataFrame(Allrecords,
+                                               columns=['CoachName', 'YearsCoached'])
+                                print(df)
+                                print("\n")
                                 try:
                                     YearsCoachedUpdate = int(input("Please enter the new updated number of years coached: "))
                                     break
@@ -535,6 +546,17 @@ def updateRecord():
                             "Please type in the corresponding number: ")
                         if userChoice == "1":
                             while True:
+                                # Show current data value
+                                print("\n")
+                                print("The current amount of goals is shown below: ")
+                                mycursor.execute("SELECT PlayerId, Goals FROM Stats WHERE PlayerId = %s and isDeleted = false;", (userUpdate,))
+                                Allrecords = mycursor.fetchall()
+                                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width",
+                                              None)
+                                df = DataFrame(Allrecords,
+                                               columns=['PlayerId', 'Goals'])
+                                print(df)
+                                print("\n")
                                 try:
                                     goalUpdate = int(input("Please enter the new goal count: "))
                                     mycursor.execute("UPDATE Stats SET Goals = %s WHERE PlayerId = %s", (goalUpdate, userUpdate,))
@@ -549,6 +571,17 @@ def updateRecord():
 
                         elif userChoice == "2":
                             while True:
+                                # Show current data value
+                                print("\n")
+                                print("The current amount of assists is shown below: ")
+                                mycursor.execute("SELECT PlayerId, Assists FROM Stats WHERE PlayerId = %s and isDeleted = false;", (userUpdate,))
+                                Allrecords = mycursor.fetchall()
+                                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width",
+                                              None)
+                                df = DataFrame(Allrecords,
+                                               columns=['PlayerId', 'Assists'])
+                                print(df)
+                                print("\n")
                                 try:
                                     assistUpdate = int(input("Please enter the new assist count: "))
                                     mycursor.execute("UPDATE Stats SET Assists = %s WHERE PlayerId = %s", (assistUpdate, userUpdate,))
@@ -562,6 +595,17 @@ def updateRecord():
                                     print("Please enter integers. Try again: ")
                         elif userChoice == "3":
                             while True:
+                                # Show current data value
+                                print("\n")
+                                print("The current amount of minutes played is shown below: ")
+                                mycursor.execute("SELECT PlayerId, MinutesPlayedTotal FROM Stats WHERE PlayerId = %s and isDeleted = false;", (userUpdate,))
+                                Allrecords = mycursor.fetchall()
+                                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width",
+                                              None)
+                                df = DataFrame(Allrecords,
+                                               columns=['PlayerId', 'MinutesPlayedTotal'])
+                                print(df)
+                                print("\n")
                                 try:
                                     minutesUpdate = int(input("Please enter the new minutes played count: "))
                                     mycursor.execute("UPDATE Stats SET MinutesPlayedTotal = %s WHERE PlayerId = %s", (minutesUpdate, userUpdate,))
@@ -575,6 +619,17 @@ def updateRecord():
                                     print("Please enter integers. Try again: ")
                         elif userChoice == "4":
                             while True:
+                                # Show current data value
+                                print("\n")
+                                print("The current amount of games played in is shown below: ")
+                                mycursor.execute("SELECT PlayerId, GamesPlayedIn FROM Stats WHERE PlayerId = %s and isDeleted = false;", (userUpdate,))
+                                Allrecords = mycursor.fetchall()
+                                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width",
+                                              None)
+                                df = DataFrame(Allrecords,
+                                               columns=['PlayerId', 'GamesPlayedIn'])
+                                print(df)
+                                print("\n")
                                 try:
                                     playedUpdate = int(input("Please enter the new amounts of games the player has played in: "))
                                     mycursor.execute("UPDATE Stats SET GamesPlayedIn = %s WHERE PlayerId = %s", (playedUpdate, userUpdate,))
@@ -704,43 +759,71 @@ def queryData():
     while (checkWhile == True):
         print("\n")
         fieldInput = input("Please enter the corresponding number: ")
+
+        #Players that are eligible to play
         if fieldInput == "1":
-            mycursor.callproc('getEligibilePlayers')
-            for result in mycursor.stored_results():
-                eligibile = result.fetchall()
-                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-                df = DataFrame(eligibile, columns=['Name', 'Gpa', 'UniversityName'])
-                print(df)
+            mycursor = db.cursor()
+            mycursor.execute("SELECT Name, Gpa, UniversityName FROM playersAndTeams WHERE Gpa > 2.5 ORDER BY UniversityName;")
+            eligible = mycursor.fetchall()
+            df = pd.DataFrame(eligible, columns=['Name', 'Gpa', 'UniversityName'])
+            pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+            print("\n")
+            print(df)
             break
+
+        #Injured players
         elif fieldInput == "2":
-            mycursor.callproc('getInjuredPlayers')
-            for result in mycursor.stored_results():
-                injured = result.fetchall()
-                pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-                df = DataFrame(injured, columns=['Name', 'JerseyNumber', 'UniversityName'])
-                print(df)
+            mycursor = db.cursor()
+            mycursor.execute("SELECT Name, JerseyNumber, UniversityName, Injured FROM playersAndTeams WHERE Injured = 1 ORDER BY UniversityName;")
+            eligible = mycursor.fetchall()
+            df = pd.DataFrame(eligible, columns=['Name', 'JerseyNumber', 'UniversityName', 'Injured'])
+            pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+            print("\n")
+            print(df)
             break
+
+        #Most experienced coaches
         elif fieldInput == "3":
+            mycursor = db.cursor()
             mycursor.callproc('getMostExperiencedCoaches')
             for result in mycursor.stored_results():
                 experience = result.fetchall()
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(experience, columns=['CoachName', 'YearsCoached', 'UniversityName'])
+                print("\n")
                 print(df)
             break
+
+        #Players by desired grade level
         elif fieldInput == "4":
-            userYearInput = input("What year would you like to query by?: ")
+            mycursor = db.cursor()
+            while True:
+                try:
+                    userYearInput = int(input("What year would you like to query by enter 1-4?: "))
+                    if userYearInput >= 1 and userYearInput <= 4:
+                        break
+                    else:
+                        print("\n")
+                        print("Please enter 1-4.")
+                        continue
+                except ValueError:
+                    print("\n")
+                    print("Please enter single integer 1-4 corresponding to grade level. Try again: ")
             mycursor.callproc('getPlayersByYear', args = [userYearInput])
             for result in mycursor.stored_results():
                 byYear = result.fetchall()
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(byYear, columns=['Name', 'Year', 'JerseyNumber', 'UniversityName'])
+                print("\n")
                 print(df)
             break
+
+        #Players by a desired school
         elif fieldInput == "5":
             while True:
                 try:
                     print("\n")
+                    mycursor = db.cursor()
                     mycursor.execute("SELECT TeamId, UniversityName FROM Team WHERE isDeleted = false;")
                     Allrecords = mycursor.fetchall()
                     # use pd.set_option to display full table with all attributes
@@ -757,6 +840,7 @@ def queryData():
                         school = result.fetchall()
                         pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                         df = DataFrame(school, columns=['Name', 'JerseyNumber', 'Year', 'Position', 'UniversityName'])
+                        print("\n")
                         print(df)
                     break
                 except ValueError:
@@ -764,21 +848,27 @@ def queryData():
                     print("Please enter integers. Try again: ")
             break
 
-
+        #Player stats
         elif fieldInput == "6":
+            mycursor = db.cursor()
             mycursor.callproc('playerStats')
             for result in mycursor.stored_results():
                 stats = result.fetchall()
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(stats, columns=['Name', 'JerseyNumber', 'UniversityName', 'MinutesPlayedTotal', 'GamesPlayedIn', 'goals', 'assists'])
+                print("\n")
                 print(df)
             break
+
+        #Team records
         elif fieldInput == "7":
+            mycursor = db.cursor()
             mycursor.callproc('teamRecords')
             for result in mycursor.stored_results():
                 records = result.fetchall()
                 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
                 df = DataFrame(records, columns=['UniversityName', 'Wins', 'Losses', 'Ties'])
+                print("\n")
                 print(df)
             break
         else:
@@ -792,36 +882,44 @@ def generateReports():
 
     #Report 1 - Average Stats
     mycursor = db.cursor()
-    mycursor.execute("SELECT * FROM avgStats")
-    avg = mycursor.fetchall()
-    df = pd.DataFrame(avg, columns=['UniversityName', 'Avg Goals', 'Avg Assists', 'AvgMinutesPlayedTotal', 'AvgGamesPlayedIn'])
-    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-    df.to_csv("AverageStats.csv")
+    mycursor.callproc('avgStats')
+    for result in mycursor.stored_results():
+        records = result.fetchall()
+        pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+        df = DataFrame(records, columns=['UniversityName', 'Avg Goals', 'Avg Assists', 'AvgMinutesPlayedTotal', 'AvgGamesPlayedIn'])
+        df.to_csv("AverageStats.csv")
+        break
 
     #Report 2 - Top Goal Scorers
     mycursor = db.cursor()
-    mycursor.execute("SELECT * FROM topTenGoalScorers")
-    avg = mycursor.fetchall()
-    df = pd.DataFrame(avg, columns=['Name', 'JerseyNumber', 'Position', 'MaxGoals', 'UniversityName'])
-    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-    df.to_csv("topGoalScorers.csv")
+    mycursor.callproc('topTenGoalScorers')
+    for result in mycursor.stored_results():
+        records = result.fetchall()
+        pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+        df = DataFrame(records, columns=['Name', 'JerseyNumber', 'Position', 'MaxGoals', 'UniversityName'])
+        df.to_csv("topGoalScorers.csv")
+        break
 
 
     #Report 3 - Most Minutes Played
     mycursor = db.cursor()
-    mycursor.execute("SELECT * FROM topTenMinutePlayers")
-    avg = mycursor.fetchall()
-    df = pd.DataFrame(avg, columns=['Name', 'JerseyNumber', 'Position', 'MinutesPlayed', 'UniversityName'])
-    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-    df.to_csv("topMinutePlayers.csv")
+    mycursor.callproc('topTenMinutePlayers')
+    for result in mycursor.stored_results():
+        records = result.fetchall()
+        pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+        df = DataFrame(records, columns=['Name', 'JerseyNumber', 'Position', 'MinutesPlayed', 'UniversityName'])
+        df.to_csv("topMinutePlayers.csv")
+        break
 
     #Report 4 - Injuries on Each Team
     mycursor = db.cursor()
-    mycursor.execute("SELECT * FROM injuryTeamCount")
-    avg = mycursor.fetchall()
-    df = pd.DataFrame(avg, columns=['Count', 'UniversityName'])
-    pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
-    df.to_csv("injuryTeamCount.csv")
+    mycursor.callproc('injuryTeamCount')
+    for result in mycursor.stored_results():
+        records = result.fetchall()
+        pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", None)
+        df = DataFrame(records, columns=['Count', 'UniversityName'])
+        df.to_csv("injuryTeamCount.csv")
+        break
 
     print("\n")
     print("Reports have successfully been created!")
