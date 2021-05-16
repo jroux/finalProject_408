@@ -240,8 +240,6 @@ def createNewRecord():
                     print("\n")
                     print("Please enter an integer. ")
 
-
-
             while True:
                 try:
                     userGamesPlayed = int(input("Enter number of games the player has played in: "))
